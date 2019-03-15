@@ -153,8 +153,18 @@ def min_max_routine(ui, allComponents):
                     if retVals[0]:  # means value was entered
                         inp, isCancelled = retVals
 
+                        try:
+                            val = float(inp)
+                        except:
+                            if ui:
+                                ui.messageBox('invalid value for parameter '
+                                              'entered')
+                                i = 0
+                                tdict = {}
+                                continue
+
                         if limit_str == 'max':
-                            if float(inp) <= tdict['min']:
+                            if val <= tdict['min']:
                                 ui.messageBox(
                                     'max setting should '
                                     'be larger than min '
