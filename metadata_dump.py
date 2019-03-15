@@ -101,8 +101,35 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                         tcomp = comp  # type: adskf.Component
                         for param in tcomp.modelParameters:
                             tparam = param  # type: adskf.Parameter
-                            ui.messageBox(tparam.unit)
-                            param_dict[tparam.name] = tparam.value
+
+                            # only dump values if allowed
+                            if tparam.comment != 'no':
+                                # set max min limits of param
+                                tdict = {}
+                                limit_strs = ['min', 'max']
+                                limit_input = ''
+
+                                for limit_str in limit_strs:
+                                    # reVals will be a list 1st mem- input
+                                    retVals = ui.inputBox(
+                                        "enter {} value for dimension {}"
+                                            .format(limit_str, tparam.name),
+                                        'enter range for dimensions',
+                                        limit_input)
+
+                                    if retVals[0]:  # means value was entered
+                                        inp, isCancelled = retVals
+
+                                        tdict[limit_str] = round(float(inp), 2)
+
+                                    else:  # means cancel was hit
+                                        ui.messageBox('cancelling json dump '
+                                                      'sequence')
+                                        # unloads addin
+                                        # adsk.terminate()
+                                        return
+                                tdict["currentValue"] = tparam.value
+                                param_dict[tparam.name] = tdict
 
                     with open(folderPath + '\\' +
                               rootCompName + '.json', 'w') as outfile:
