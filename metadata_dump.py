@@ -37,7 +37,7 @@ class JsonDumpButtPressEvtHandler(adskc.CommandCreatedEventHandler):
                                                     '',
                                                     False)
             booleanInput.isFullWidth = True
-            booleanInput.text = '        Initiate Dump        '
+            booleanInput.text = '            Initiate Dump            '
 
             # executes as soon as inputs change
             onInputChanged = JsonDumpInputChangedHandler()
@@ -88,8 +88,13 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                     folderPath = folderDialog.folder
                     rootComp = design.rootComponent
                     rootCompName = rootComp.name
+
                     param_dict = min_max_routine(ui, allComponents)
                     if not param_dict:
+                        ui.messageBox(
+                            'failed retrieving parameter data from components.\n'
+                            'make sure current workspace contains valid '
+                            'model(S)')
                         return
                     # dump json
                     with open(folderPath + '\\' +
