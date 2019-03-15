@@ -94,42 +94,7 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                     folderPath = folderDialog.folder
                     rootComp = design.rootComponent
                     rootCompName = rootComp.name
-
-                    # initiate json dumping sequence
-                    param_dict = {}
-                    for comp in allComponents:
-                        tcomp = comp  # type: adskf.Component
-                        for param in tcomp.modelParameters:
-                            tparam = param  # type: adskf.Parameter
-
-                            # only dump values if allowed
-                            if tparam.comment != 'no':
-                                # set max min limits of param
-                                tdict = {}
-                                limit_strs = ['min', 'max']
-                                limit_input = ''
-
-                                for limit_str in limit_strs:
-                                    # reVals will be a list 1st mem- input
-                                    retVals = ui.inputBox(
-                                        "enter {} value for dimension {}"
-                                            .format(limit_str, tparam.name),
-                                        'enter range for dimensions',
-                                        limit_input)
-
-                                    if retVals[0]:  # means value was entered
-                                        inp, isCancelled = retVals
-
-                                        tdict[limit_str] = round(float(inp), 2)
-
-                                    else:  # means cancel was hit
-                                        ui.messageBox('cancelling json dump '
-                                                      'sequence')
-                                        # unloads addin
-                                        # adsk.terminate()
-                                        return
-                                tdict["currentValue"] = tparam.value
-                                param_dict[tparam.name] = tdict
+                    param_dict = min_max_routine(ui, allComponents)
 
                     with open(folderPath + '\\' +
                               rootCompName + '.json', 'w') as outfile:
@@ -160,6 +125,61 @@ class OKEventHandler(adskc.CommandEventHandler):
             if ui:
                 ui.messageBox('command executed failed:\n{}'.format(
                     traceback.format_exc()))
+
+
+def min_max_routine(ui, allComponents):
+    param_dict = {}
+    for comp in allComponents:
+        tcomp = comp  # type: adskf.Component
+        for param in tcomp.modelParameters:
+            tparam = param  # type: adskf.Parameter
+
+            # only dump values if allowed
+            if tparam.comment != 'no':
+                # set max min limits of param
+                tdict = {}
+                limit_strs = ['min', 'max']
+                limit_input = ''
+                i = 0
+                while True:
+                    # reVals will be a list 1st mem- input
+                    limit_str = limit_strs[i]
+                    retVals = ui.inputBox(
+                        "enter {} value for dimension {}"
+                            .format(limit_str, tparam.name),
+                        'enter range for dimensions',
+                        limit_input)
+
+                    if retVals[0]:  # means value was entered
+                        inp, isCancelled = retVals
+
+                        if limit_str == 'max':
+                            if float(inp) <= tdict['min']:
+                                ui.messageBox(
+                                    'max setting should '
+                                    'be larger than min '
+                                    'setting'
+                                )
+                                i = 0
+                                tdict = {}
+                                continue
+
+                        tdict[limit_str] = round(float(inp), 2)
+                        i += 1
+
+                        if i > 1:
+                            break
+
+                    else:  # means cancel was hit
+                        ui.messageBox(
+                            'cancelling json dump '
+                            'sequence')
+                        # adsk.terminate()
+                        return
+
+                tdict["currentValue"] = tparam.value
+                param_dict[tparam.name] = tdict
+    return param_dict
 
 
 def run(context):
