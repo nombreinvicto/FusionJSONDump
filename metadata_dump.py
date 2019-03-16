@@ -80,7 +80,10 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                 # create fila dialog here
                 folderDialog = ui.createFolderDialog()
                 folderDialog.isMultiSelectEnabled = False
-                folderDialog.initialDirectory = os.path.expanduser('~')
+                # folderDialog.initialDirectory = os.path.expanduser('~')
+                folderDialog.initialDirectory = os.path.expanduser(
+                    '~' + '\AppData\Roaming\Autodesk\Autodesk Fusion '
+                          '360\MyScripts\\flask_3JS_addon_server')
                 dialogResult = folderDialog.showDialog()
 
                 # folder selected
@@ -89,8 +92,8 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                     rootComp = design.rootComponent
                     rootCompName = rootComp.name
 
-                    param_dict = min_max_routine(ui, allComponents)
-                    if not param_dict:
+                    min_max_dict, val_dict = min_max_routine(ui, allComponents)
+                    if not min_max_dict:
                         ui.messageBox(
                             'failed retrieving parameter data from components.\n'
                             'make sure current workspace contains valid '
@@ -98,9 +101,14 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                         return
                     # dump json
                     with open(folderPath + '\\' +
-                              rootCompName + '.json', 'w') as outfile:
-                        json.dump(param_dict, outfile)
-                    ui.messageBox('Json Dump Complete!')
+                              rootCompName + '_min_max' + '.json',
+                              'w') as outfile:
+                        json.dump(min_max_dict, outfile)
+
+                    with open(folderPath + '\\' +
+                              rootCompName + '_value' + '.json',
+                              'w') as outfile:
+                        json.dump(val_dict, outfile)
 
                     # dump stl
                     exprtMgr = adskf.ExportManager.cast(design.exportManager)
@@ -140,7 +148,8 @@ class OKEventHandler(adskc.CommandEventHandler):
 
 
 def min_max_routine(ui, allComponents):
-    param_dict = {}
+    min_max_dict = {}
+    current_value_dict = {}
     for comp in allComponents:
         tcomp = comp  # type: adskf.Component
         for param in tcomp.modelParameters:
@@ -197,11 +206,11 @@ def min_max_routine(ui, allComponents):
                             'cancelling json dump '
                             'sequence')
                         # adsk.terminate()
-                        return {}
+                        return {}, {}
 
-                tdict["currentValue"] = tparam.value
-                param_dict[tparam.name] = tdict
-    return param_dict
+                min_max_dict[tparam.name] = tdict
+                current_value_dict[tparam.name] = tparam.value
+    return min_max_dict, current_value_dict
 
 
 def run(context):
