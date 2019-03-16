@@ -118,7 +118,7 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                     stlOptions.filename = folderPath + '\\' \
                                           + rootCompName + '.stl'
                     exprtMgr.execute(stlOptions)
-                    ui.messageBox('STL Dump Complete!')
+                    ui.messageBox('STL and JSON Dump Complete!')
 
                 else:
                     pass
