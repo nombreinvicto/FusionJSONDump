@@ -91,6 +91,8 @@ class JsonDumpInputChangedHandler(adskc.InputChangedEventHandler):
                     folderPath = folderDialog.folder
                     rootComp = design.rootComponent
                     rootCompName = rootComp.name
+                    rootCompName = rootCompName.split(" ")[0] # to get rid
+                    # of the v22 part i.e version part
 
                     min_max_dict, val_dict = min_max_routine(ui, allComponents)
                     if not min_max_dict:
